@@ -1,0 +1,54 @@
+name: Deploy Frontend to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'vite.config.js'
+      - '.github/workflows/deploy-frontend.yml'
+
+env:
+  AZURE_WEBAPP_NAME: my-restaurant-frontend
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build React app
+      run: npm run build
+      env:
+        VITE_API_URL: https://my-restaurant-apps-gfacazca6che0u.malaysiasoutheast-01.azurewebsites.net
+        VITE_STRIPE_PUBLIC_KEY: pk_test_51SXLCwHhqLDFlTV0ll6Lg6sI9GdE30BktP7ohbvSAZ5t3x5AHyWxxTUi8Gu1AFSnFgDkujUayRqfAqQggO2x5Xc400Jb2gAHND
+
+    - name: Create deployment package
+      run: |
+        mkdir deploy
+        cp -r dist deploy/
+        cp package.json deploy/
+        echo '{"scripts":{"start":"npx serve -s dist -l 8080"}}' > deploy/package.json
+        cd deploy && zip -r ../deploy.zip .
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_FRONTEND_PUBLISH_PROFILE }}
+        package: deploy.zip
