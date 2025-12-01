@@ -13,7 +13,8 @@ env:
   AZURE_WEBAPP_NAME: my-restaurant-apps
   AZURE_WEBAPP_PACKAGE_PATH: './server'
   NODE_VERSION: '18.x'
-  STARTUP_COMMAND: 'cd server && npm install && node server.js'
+  STARTUP_COMMAND: 'npm install && node server.js'
+  # Repository: https://github.com/HirthickCoder/newproject
 
 jobs:
   build-and-deploy:
